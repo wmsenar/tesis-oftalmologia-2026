@@ -1,0 +1,16 @@
+=== CONCORDANCIA INTEROCULAR OD vs OS ===
+
+Tabla de concordancia:
+          OS
+OD         Normal Leve Moderada Severa
+  Normal       45    6        0      0
+  Leve         11   23        5      0
+  Moderada      0    5        8      4
+  Severa        0    0        3      3
+
+Acuerdo observado bruto: 69.9 %
+Kappa de Cohen: 0.536 
+Interpretación: Moderada 
+
+Pacientes con asimetría OD≠OS: 34 ( 30.1 %)
+Pacientes sin asimetría OD=OS: 79 ( 69.9 %)

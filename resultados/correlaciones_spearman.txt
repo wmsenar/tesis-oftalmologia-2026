@@ -1,0 +1,35 @@
+Spearman — tiempo evolución vs severidad:
+
+	Spearman's rank correlation rho
+
+data:  df$tiempo_de_evolucion_de_diabetes and as.numeric(df$severidad_sensibilidad)
+S = 148936, p-value = 3.199e-05
+alternative hypothesis: true rho is not equal to 0
+sample estimates:
+      rho 
+0.3806292 
+
+
+Spearman — HbA1c vs severidad:
+
+	Spearman's rank correlation rho
+
+data:  df$hb_a1c_num and as.numeric(df$severidad_sensibilidad)
+S = 220134, p-value = 0.3733
+alternative hypothesis: true rho is not equal to 0
+sample estimates:
+       rho 
+0.08454652 
+
+
+Spearman — glucemia vs severidad:
+
+	Spearman's rank correlation rho
+
+data:  df$glucemia_num and as.numeric(df$severidad_sensibilidad)
+S = 227714, p-value = 0.577
+alternative hypothesis: true rho is not equal to 0
+sample estimates:
+       rho 
+0.05302195 
+

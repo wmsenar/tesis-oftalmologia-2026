@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.httr-oauth
+.DS_Store
+.quarto
+basedatosconsulta.csv
+base_sensibilidad_corneal.csv
+*.csv
+*.csv
+*.RData
