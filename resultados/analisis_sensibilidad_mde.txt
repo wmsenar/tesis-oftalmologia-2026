@@ -1,0 +1,7 @@
+ANÁLISIS DE SENSIBILIDAD (EFECTO MÍNIMO DETECTABLE)
+n = 113 | alfa = 0.05 (bilateral) | rho observado = 0.381
+
+MDE potencia 80%: rho = 0.265
+MDE potencia 90%: rho = 0.306
+
+El efecto observado (0.381) supera el MDE en ambos niveles de potencia.

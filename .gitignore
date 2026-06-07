@@ -20,3 +20,8 @@ tesis_sensibilidad_corneal_113.RData
 .Rhistory
 .Rapp.history
 .DS_Store
+.positai
+
+# Cache y archivos temporales de Quarto
+*_cache/
+*_files/

@@ -1,0 +1,674 @@
+---
+title: |
+  Sensibilidad corneal evaluada mediante estímulo mecánico con algodón
+  en pacientes con diabetes mellitus tipo 2 atendidos en el Hospital Escuela
+  Dr. Jorge Abraham Hazoury Bahlés, Santo Domingo, República Dominicana
+title-en: |
+  Corneal Sensitivity Assessed by Mechanical Cotton Stimulation in Type 2
+  Diabetes Mellitus Patients at Dr. Jorge Abraham Hazoury Bahlés Teaching
+  Hospital, Santo Domingo, Dominican Republic
+author:
+  - name: "Wainer Manuel Sena Rivas"
+    affiliations:
+      - ref: inden
+      - ref: unibe
+    email: wainer.sena@unibe.edu.do
+    corresponding: true
+  - name: "Ángel Campusano"
+    affiliations:
+      - ref: unibe
+  - name: "Cynthia Cunillera Batlle"
+    affiliations:
+      - ref: inden
+affiliations:
+  - id: inden
+    name: >
+      Servicio de Oftalmología, Instituto Nacional de Diabetes, Endocrinología
+      y Nutrición (INDEN) — Hospital Escuela Dr. Jorge Abraham Hazoury Bahlés,
+      Santo Domingo, República Dominicana
+  - id: unibe
+    name: >
+      Escuela de Medicina, Facultad de Ciencias de la Salud,
+      Universidad Iberoamericana (UNIBE), Santo Domingo, República Dominicana
+lang: es
+date: today
+date-format: "MMMM YYYY"
+abstract: |
+  **Introducción:** La sensibilidad corneal es un indicador funcional de la
+  integridad de la inervación corneal que puede deteriorarse en el contexto de
+  la neuropatía diabética. En la República Dominicana, su valoración sistemática
+  en pacientes con diabetes mellitus tipo 2 (DM2) no se había integrado a la
+  práctica clínica de rutina. **Métodos:** Estudio observacional,
+  descriptivo-analítico y transversal en 113 pacientes con DM2 atendidos en el
+  INDEN de Santo Domingo durante marzo–mayo de 2026. La sensibilidad corneal fue
+  valorada mediante estimulación mecánica con algodón y categorizada en cuatro
+  niveles ordinales (normal, leve, moderada, severa). Su asociación con variables
+  clínicas y metabólicas fue explorada mediante pruebas no paramétricas y
+  regresión logística ordinal. **Resultados:** El 60,2% (IC 95%: 50,5%–69,3%)
+  de los pacientes presentó algún grado de alteración corneal (leve 35%,
+  moderada 16%, severa 8,8%). El tiempo de evolución de la DM2 mostró
+  correlación positiva moderada con la severidad corneal (ρ = 0,381; p < 0,001).
+  En el modelo multivariado, la neuropatía periférica diabética fue el predictor
+  de mayor magnitud (OR = 3,02; IC 95%: 1,32–6,90), seguida de la hipertensión
+  arterial (OR = 2,47; IC 95%: 1,13–5,40) y el tiempo de evolución
+  (OR = 1,10; IC 95%: 1,04–1,16). No se identificaron asociaciones
+  significativas con HbA1c ni glucemia reciente. **Discusión:** La alta
+  prevalencia de alteración corneal y su asociación con predictores clínicos
+  accesibles respaldan la incorporación de esta evaluación en el seguimiento
+  oftalmológico rutinario del paciente diabético en entornos con recursos
+  limitados.
+abstract-title: "Resumen"
+keywords: [sensibilidad corneal, diabetes mellitus, neuropatia diabetica,
+           neuropatia corneal, estesiometria]
+format:
+  pdf:
+    documentclass: article
+    classoption: [twocolumn, 10pt]
+    fontfamily: mathpazo
+    geometry:
+      - left=1.8cm
+      - right=1.8cm
+      - top=2.5cm
+      - bottom=2cm
+      - columnsep=0.7cm
+    colorlinks: true
+    linkcolor: black
+    citecolor: black
+    urlcolor: black
+    latex-engine: xelatex
+    number-sections: false
+    include-in-header:
+      text: |
+        \usepackage{float}
+        \usepackage{booktabs}
+        \usepackage{caption}
+        \usepackage{fancyhdr}
+        \usepackage{titlesec}
+        \usepackage{microtype}
+        \pagestyle{fancy}
+        \fancyhf{}
+        \fancyhead[L]{\footnotesize\textit{Revista Oftálmica} \quad ISSN en línea 2791-2787}
+        \fancyhead[R]{\footnotesize Vol. XX \quad Enero-Junio 2026}
+        \fancyfoot[C]{\thepage}
+        \renewcommand{\headrulewidth}{0.4pt}
+        \setlength{\headheight}{15pt}
+        \titleformat{\section}{\normalfont\normalsize\bfseries\MakeUppercase}{}{0em}{}
+        \titleformat{\subsection}{\normalfont\normalsize\bfseries}{}{0em}{}
+        \titlespacing{\section}{0pt}{8pt plus 2pt}{4pt plus 1pt}
+        \captionsetup{font=small,labelfont=bf,justification=justified,singlelinecheck=false}
+        \setlength{\parindent}{0em}
+        \setlength{\parskip}{4pt}
+  docx:
+    # reference-doc: plantilla_UNIBE.docx
+    toc: false
+    number-sections: false
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: true
+bibliography: referencias_corneal.bib
+csl: vancouver.csl
+---
+
+```{r}
+#| label: setup
+#| include: false
+#| cache: false
+
+# ── 1. Paquetes ───────────────────────────────────────────────────────────
+library(MASS)
+library(tidyverse)
+library(janitor)
+library(stringr)
+library(lubridate)
+library(gtsummary)
+library(flextable)
+library(officer)
+library(ggplot2)
+library(ggtext)
+library(scales)
+library(dplyr)
+library(patchwork)
+library(knitr)
+
+options(scipen = 999)
+theme_gtsummary_language("es")
+set_flextable_defaults(font.family = "Arial", font.size = 9)
+
+knitr::opts_chunk$set(
+  fig.align = "center",
+  out.width = "100%",
+  dpi       = 300
+)
+
+# ── 2. Carga y limpieza ───────────────────────────────────────────────────
+# AJUSTAR la ruta si el CSV no está en la misma carpeta que el .qmd
+df <- read_csv("base_sensibilidad_corneal.csv") %>%
+  clean_names() %>%
+  mutate(across(where(is.character), str_trim)) %>%
+  mutate(across(
+    where(is.character),
+    ~ case_when(
+      .x %in% c("si","sí","SI","Sí","SÍ") ~ "Si",
+      .x %in% c("no","NO","No")            ~ "NO",
+      TRUE                                  ~ .x
+    )
+  ))
+
+# ── 3. Conversión de variables ────────────────────────────────────────────
+df <- df %>%
+  mutate(
+    edad                            = as.numeric(edad),
+    fecha_de_evaluacion             = dmy(fecha_de_evaluacion),
+    tiempo_de_evolucion_de_diabetes = as.numeric(tiempo_de_evolucion_de_diabetes),
+    hb_a1c_num  = as.numeric(gsub("%", "", hb_a1c)),
+    glucemia_num = as.numeric(str_trim(gsub("mg/dL|mg/dl|/dL|/dl","",glucemia_reciente))),
+    sexo                            = factor(sexo),
+    hipertension_arterial           = factor(hipertension_arterial,           levels=c("NO","Si")),
+    dislipidemia                    = factor(dislipidemia,                    levels=c("NO","Si")),
+    neuropatia_periferica_diabetica = factor(neuropatia_periferica_diabetica, levels=c("NO","Si")),
+    nefropatia_diabetica            = factor(nefropatia_diabetica,            levels=c("NO","Si")),
+    central_od  = as.numeric(central_od),
+    central_os  = as.numeric(central_os)
+  )
+
+# ── 4. Variables derivadas ────────────────────────────────────────────────
+df <- df %>%
+  mutate(
+    sensibilidad_minima = pmin(central_od, central_os, na.rm = TRUE),
+    severidad_sensibilidad = factor(
+      case_when(
+        sensibilidad_minima == 3 ~ "Normal",
+        sensibilidad_minima == 2 ~ "Leve",
+        sensibilidad_minima == 1 ~ "Moderada",
+        sensibilidad_minima == 0 ~ "Severa"
+      ),
+      levels = c("Normal","Leve","Moderada","Severa"), ordered = TRUE
+    ),
+    sensibilidad_alterada = factor(
+      case_when(
+        sensibilidad_minima == 3 ~ "NO",
+        sensibilidad_minima  < 3 ~ "Si"
+      ),
+      levels = c("NO","Si")
+    ),
+    control_glucemico_hba1c = factor(
+      case_when(
+        hb_a1c_num <  7                   ~ "Controlado",
+        hb_a1c_num >= 7 & hb_a1c_num < 9 ~ "Mal controlado",
+        hb_a1c_num >= 9                   ~ "Muy mal controlado",
+        TRUE                              ~ NA_character_
+      ),
+      levels = c("Controlado","Mal controlado","Muy mal controlado"),
+      ordered = TRUE
+    )
+  )
+
+# ── 5. Paleta y tema ──────────────────────────────────────────────────────
+pal_severidad <- c("Normal"="#C6DEFF","Leve"="#74B9E0",
+                   "Moderada"="#2166AC","Severa"="#1A3A5C")
+
+tema_academico <- theme_classic(base_size = 9) +
+  theme(
+    plot.title    = element_text(size=9, face="bold", color="#1A3A5C", hjust=0.5),
+    plot.subtitle = element_text(size=8, color="#4A4A4A", hjust=0.5),
+    plot.caption  = element_text(size=7.5, color="#888888", hjust=0),
+    axis.title    = element_text(size=8, color="#2D2D2D", face="bold"),
+    axis.text     = element_text(size=7.5, color="#3A3A3A"),
+    axis.line     = element_line(color="#B0B8C1", linewidth=0.35),
+    axis.ticks    = element_line(color="#B0B8C1", linewidth=0.3),
+    panel.background = element_rect(fill="#FAFBFD", color=NA),
+    plot.background  = element_rect(fill="white",   color=NA),
+    panel.grid.major = element_line(color="#E8EDF4", linewidth=0.3),
+    panel.border     = element_rect(color="#C8D0DC", fill=NA, linewidth=0.35),
+    legend.text      = element_text(size=7.5),
+    legend.title     = element_text(size=8, face="bold"),
+    plot.margin      = margin(6, 8, 6, 6)
+  )
+
+# Funciones auxiliares
+n_label <- function(x)
+  data.frame(y=median(x,na.rm=TRUE), label=paste0("n=",sum(!is.na(x))))
+kruskal_p <- function(d, var, grupo) {
+  kt <- kruskal.test(d[[var]] ~ d[[grupo]])
+  if (kt$p.value < 0.001) "p < 0.001" else paste0("p = ",round(kt$p.value,3))
+}
+wilcox_p <- function(d, var, grupo) {
+  wt <- wilcox.test(d[[var]] ~ d[[grupo]])
+  if (wt$p.value < 0.001) "p < 0.001" else paste0("p = ",round(wt$p.value,3))
+}
+
+# ── 6. Estadísticos inferencial ───────────────────────────────────────────
+cor_tiempo <- cor.test(df$tiempo_de_evolucion_de_diabetes,
+                       as.numeric(df$severidad_sensibilidad), method="spearman")
+r_val      <- as.numeric(cor_tiempo$estimate)
+
+fisher_npd   <- fisher.test(table(df$sensibilidad_alterada,
+                                  df$neuropatia_periferica_diabetica))
+p_fisher_npd <- ifelse(fisher_npd$p.value < 0.001, "p < 0.001",
+                       paste0("p = ",round(fisher_npd$p.value,3)))
+
+modelo_ordinal <- polr(
+  severidad_sensibilidad ~
+    tiempo_de_evolucion_de_diabetes + neuropatia_periferica_diabetica +
+    hipertension_arterial + hb_a1c_num + glucemia_num + sexo + edad,
+  data = df, Hess = TRUE
+)
+or_ordinal   <- exp(cbind(OR=coef(modelo_ordinal), confint.default(modelo_ordinal)))
+coef_tabla   <- coef(summary(modelo_ordinal))
+p_values     <- pnorm(abs(coef_tabla[,"t value"]), lower.tail=FALSE) * 2
+coef_tabla   <- cbind(coef_tabla, "p value"=round(p_values, 4))
+
+fisher_p_g7 <- fisher.test(df$neuropatia_periferica_diabetica, df$sensibilidad_alterada)
+p_fisher_g7 <- ifelse(fisher_p_g7$p.value < 0.001, "p < 0.001",
+                      paste0("p = ",round(fisher_p_g7$p.value,3)))
+
+# ── 7. Gráficos ───────────────────────────────────────────────────────────
+# G1 — Histograma glucemia
+g1 <- ggplot(df, aes(x=glucemia_num)) +
+  geom_histogram(binwidth=50, fill="#4393C3", color="#1A3A5C",
+                 linewidth=0.3, alpha=0.85) +
+  geom_vline(xintercept=mean(df$glucemia_num,na.rm=TRUE),
+             color="#D4550A", linetype="dashed", linewidth=0.55) +
+  annotate("text", x=mean(df$glucemia_num,na.rm=TRUE)+15, y=Inf,
+           vjust=1.5, hjust=0,
+           label=paste0("Media = ",round(mean(df$glucemia_num,na.rm=TRUE),1)),
+           size=2.5, color="#D4550A") +
+  labs(x="Glucemia (mg/dL)", y="Frecuencia",
+       caption="Línea discontinua: media muestral") +
+  tema_academico
+
+# G2 — Histograma HbA1c
+g2 <- ggplot(df, aes(x=hb_a1c_num)) +
+  geom_histogram(binwidth=1, fill="#4393C3", color="#1A3A5C",
+                 linewidth=0.3, alpha=0.85) +
+  geom_vline(xintercept=mean(df$hb_a1c_num,na.rm=TRUE),
+             color="#D4550A", linetype="dashed", linewidth=0.55) +
+  annotate("text", x=mean(df$hb_a1c_num,na.rm=TRUE)+0.2, y=Inf,
+           vjust=1.5, hjust=0,
+           label=paste0("Media = ",round(mean(df$hb_a1c_num,na.rm=TRUE),1),"%"),
+           size=2.5, color="#D4550A") +
+  labs(x="HbA1c (%)", y="Frecuencia",
+       caption="Línea discontinua: media muestral") +
+  tema_academico
+
+# G3 — Boxplot tiempo DM2 por severidad
+p3 <- kruskal_p(df, "tiempo_de_evolucion_de_diabetes", "severidad_sensibilidad")
+g3 <- ggplot(df, aes(x=severidad_sensibilidad,
+                     y=tiempo_de_evolucion_de_diabetes,
+                     fill=severidad_sensibilidad)) +
+  geom_boxplot(color="#1A3A5C", linewidth=0.4, alpha=0.85, width=0.55,
+               outlier.shape=16, outlier.size=1.0) +
+  stat_summary(fun.data=n_label, geom="text",
+               size=2.5, color="#1A3A5C", vjust=-0.5) +
+  scale_fill_manual(values=pal_severidad, guide="none") +
+  labs(x="Severidad de sensibilidad corneal",
+       y="Tiempo evolución DM2 (años)",
+       subtitle=paste0("Kruskal-Wallis: ",p3)) +
+  tema_academico
+
+# G4 — Boxplot HbA1c por severidad
+p4 <- kruskal_p(df, "hb_a1c_num", "severidad_sensibilidad")
+g4 <- ggplot(df, aes(x=severidad_sensibilidad, y=hb_a1c_num,
+                     fill=severidad_sensibilidad)) +
+  geom_boxplot(color="#1A3A5C", linewidth=0.4, alpha=0.85, width=0.55,
+               outlier.shape=16, outlier.size=1.0) +
+  stat_summary(fun.data=n_label, geom="text",
+               size=2.5, color="#1A3A5C", vjust=-0.5) +
+  scale_fill_manual(values=pal_severidad, guide="none") +
+  labs(x="Severidad de sensibilidad corneal", y="HbA1c (%)",
+       subtitle=paste0("Kruskal-Wallis: ",p4)) +
+  tema_academico
+
+# G5 — Scatter tiempo DM2 vs severidad
+g5 <- ggplot(df, aes(x=tiempo_de_evolucion_de_diabetes,
+                     y=as.numeric(severidad_sensibilidad))) +
+  geom_point(color="#2166AC", alpha=0.45, size=1.2,
+             position=position_jitter(height=0.08, seed=42)) +
+  geom_smooth(method="lm", se=TRUE, color="#D4550A", fill="#D4550A",
+              alpha=0.10, linewidth=0.7) +
+  scale_y_continuous(breaks=1:4, labels=levels(df$severidad_sensibilidad)) +
+  annotate("text", x=Inf, y=-Inf, hjust=1.05, vjust=-1,
+           label=paste0("ρ = ",round(r_val,2),"  (Spearman)"),
+           size=2.5, color="#1A3A5C") +
+  labs(x="Tiempo evolución DM2 (años)", y="Severidad de sensibilidad corneal",
+       subtitle="Regresión lineal con IC 95%") +
+  tema_academico
+
+# G6 — Boxplot binario
+p6 <- wilcox_p(df, "tiempo_de_evolucion_de_diabetes", "sensibilidad_alterada")
+g6 <- ggplot(df, aes(x=sensibilidad_alterada,
+                     y=tiempo_de_evolucion_de_diabetes,
+                     fill=sensibilidad_alterada)) +
+  geom_boxplot(color="#1A3A5C", linewidth=0.4, alpha=0.85, width=0.45,
+               outlier.shape=NA) +
+  geom_jitter(color="#1A3A5C", alpha=0.25, width=0.12, size=1.0, shape=16) +
+  stat_summary(fun.data=n_label, geom="text",
+               size=2.5, color="#1A3A5C", vjust=-0.5) +
+  scale_fill_manual(values=c("NO"="#74B9E0","Si"="#2166AC"), guide="none") +
+  labs(x="Sensibilidad corneal alterada",
+       y="Tiempo evolución DM2 (años)",
+       subtitle=paste0("U de Mann-Whitney: ",p6)) +
+  tema_academico
+
+# G7 — Barras neuropatía vs sensibilidad
+df_bar <- df %>%
+  count(neuropatia_periferica_diabetica, sensibilidad_alterada) %>%
+  group_by(neuropatia_periferica_diabetica) %>%
+  mutate(prop=n/sum(n), label=paste0(round(prop*100,1),"%")) %>%
+  ungroup()
+
+g7 <- ggplot(df_bar, aes(x=neuropatia_periferica_diabetica, y=prop,
+                         fill=sensibilidad_alterada)) +
+  geom_col(color="#1A3A5C", linewidth=0.3, alpha=0.88, position="stack") +
+  geom_text(aes(label=label), position=position_stack(vjust=0.5),
+            size=2.5, color="white", fontface="bold") +
+  scale_fill_manual(values=c("NO"="#1A3A5C","Si"="#4393C3"),
+                    name="Sensibilidad\nalterada") +
+  scale_y_continuous(labels=percent_format(accuracy=1),
+                     expand=expansion(mult=c(0,0.04))) +
+  labs(x="Neuropatía periférica diabética", y="Proporción",
+       subtitle=paste0("Fisher exacto: ",p_fisher_g7),
+       caption="Porcentajes dentro de cada grupo de neuropatía") +
+  tema_academico + theme(legend.position="right")
+
+# G8 — Forest plot modelo ordinal
+forest_df <- data.frame(
+  variable = rownames(or_ordinal),
+  OR       = or_ordinal[,"OR"],
+  IC_low   = or_ordinal[,"2.5 %"],
+  IC_high  = or_ordinal[,"97.5 %"]
+) |>
+  dplyr::filter(variable %in% c(
+    "tiempo_de_evolucion_de_diabetes","neuropatia_periferica_diabeticaSi",
+    "hipertension_arterialSi","hb_a1c_num","glucemia_num","sexoMasculino","edad"
+  )) |>
+  dplyr::mutate(
+    variable = factor(variable,
+      levels = c("edad","glucemia_num","hb_a1c_num","sexoMasculino",
+                 "hipertension_arterialSi","neuropatia_periferica_diabeticaSi",
+                 "tiempo_de_evolucion_de_diabetes"),
+      labels = c("Edad","Glucemia","HbA1c","Sexo masculino",
+                 "Hipertensión arterial","Neuropatía periférica",
+                 "Tiempo evolución DM2")
+    ),
+    or_label = paste0("OR = ",round(OR,2)),
+    sig      = !(IC_low <= 1 & IC_high >= 1)
+  )
+
+g8 <- ggplot(forest_df, aes(x=OR, y=variable)) +
+  geom_vline(xintercept=1, linetype="dashed", color="#AAAAAA", linewidth=0.5) +
+  geom_errorbarh(aes(xmin=IC_low, xmax=IC_high, color=sig),
+                 height=0.18, linewidth=0.7) +
+  geom_point(aes(color=sig), size=2.8, shape=18) +
+  geom_text(aes(x=OR, label=or_label),
+            hjust=-0.2, vjust=0.4, size=2.5, color="#1A3A5C") +
+  scale_color_manual(values=c("TRUE"="#D4550A","FALSE"="#2166AC"),
+                     labels=c("TRUE"="Significativo","FALSE"="No significativo"),
+                     name=NULL) +
+  scale_x_continuous(limits=c(0.7,8.5), breaks=c(1,2,4,6),
+                     expand=expansion(mult=c(0.02,0.05))) +
+  labs(x="Odds Ratio (IC 95%)", y=NULL,
+       subtitle="Variable dependiente: severidad de sensibilidad corneal") +
+  tema_academico + theme(panel.grid.major.y=element_blank())
+
+# ── 8. Helper bordes AGO para tablas ─────────────────────────────────────
+borde_ago <- function(ft) {
+  ft |>
+    border_remove() |>
+    hline_top(border=fp_border(width=1.2), part="header") |>
+    hline(i=1, border=fp_border(width=0.6), part="header") |>
+    hline_bottom(border=fp_border(width=1.2), part="body")
+}
+```
+
+## Correspondencia
+
+Wainer Manuel Sena Rivas, Servicio de Oftalmología, INDEN — Hospital Escuela Dr. Jorge Abraham Hazoury Bahlés, Santo Domingo, República Dominicana. Correo electrónico: wainer.sena@unibe.edu.do
+
+*Los autores declaran no tener conflicto de interés. Financiado con recursos propios.*
+
+---
+
+## Introducción
+
+La diabetes mellitus tipo 2 (DM2) constituye uno de los problemas de salud pública más urgentes de la era contemporánea. Según la *International Diabetes Federation*, alrededor de 530 millones de adultos conviven con diabetes en el mundo, cifra que alcanzará los 640 millones en 2030, con la gran mayoría correspondiente a DM2 [@ADA2024]. Su carácter crónico y evolución frecuentemente asintomática favorecen la aparición de complicaciones micro y macrovasculares que comprometen sustancialmente la calidad de vida [@Feldman2019].
+
+La neuropatía diabética periférica (NDP) es una de las complicaciones microvasculares más prevalentes, estimándose afectación en hasta la mitad de los pacientes a lo largo de la evolución de la enfermedad [@Petropoulos2021]. En sus etapas iniciales compromete preferentemente las fibras nerviosas pequeñas de tipo C y Aδ, antes de afectar fibras de mayor calibre [@Oh2020].
+
+La córnea es uno de los tejidos con mayor densidad de inervación del organismo. Su red sensitiva, derivada de la rama oftálmica del trigémino, se organiza en el plexo nervioso subbasal (PSB) [@Shaheen2014; @Cosmo2022]. Esta inervación sostiene el reflejo de parpadeo, regula la producción lagrimal y coordina la regeneración tisular [@Belmonte2004]. La hiperglucemia sostenida reduce progresivamente la densidad de fibras del PSB —neuropatía corneal diabética (NCD)—, presente en entre el 47% y el 64% de los pacientes con DM2 [@So2022; @Ljubimov2017].
+
+La sensibilidad corneal constituye el correlato funcional de esta inervación. Múltiples estudios reportan valores reducidos en pacientes con DM2 en relación con la duración de la enfermedad, el control glucémico y la NDP [@Lv2014; @CidBertomeu2026]. Estudios con microscopía confocal muestran además que los cambios morfológicos del PSB pueden preceder la manifestación clínica de la NDP, posicionando la córnea como ventana accesible para el estudio de la neuropatía de fibras pequeñas [@Bitirgen2014; @Malik2003].
+
+En la República Dominicana, aproximadamente el 12% de la población adulta padece DM2 con control metabólico frecuentemente deficiente [@MSP2021]. No se han publicado estudios que evalúen la sensibilidad corneal en esta población mediante métodos clínicos accesibles. El presente trabajo evalúa la sensibilidad corneal en pacientes con DM2 mediante estimulación mecánica con algodón y analiza su relación con indicadores clínicos y metabólicos en el contexto del INDEN de Santo Domingo.
+
+## Material y método
+
+### Diseño y ámbito
+
+Estudio observacional, descriptivo-analítico y transversal realizado en el INDEN — Hospital Escuela Dr. Jorge Abraham Hazoury Bahlés, Santo Domingo, entre marzo y mayo de 2026 [@Acento2023].
+
+### Participantes
+
+Muestreo no probabilístico por conveniencia incluyendo a todos los pacientes con DM2 que acudieron a consulta durante el período de estudio, mayores de 30 años, con HbA1c reciente (≤ 3 meses) y consentimiento informado. Se excluyeron pacientes con cirugía ocular previa, uso de lentes de contacto, enfermedades activas de la superficie ocular, queratitis herpética, neuropatías de causa no diabética, uso de medicación tópica ocular y enfermedades sistémicas que afecten la sensibilidad corneal. La muestra final fue de 113 pacientes (muestreo censal sobre 526 pacientes elegibles). Un análisis post-hoc de efecto mínimo detectable confirmó capacidad para detectar correlaciones ρ ≈ 0,27 con potencia del 80% (n = 113; α = 0,05 bilateral), umbral inferior a la correlación principal observada (ρ = 0,381).
+
+### Variables y medición
+
+La sensibilidad corneal fue valorada con una hebra de algodón estéril aplicada al epitelio corneal central desde el ángulo temporal (sin biomicroscopio), repetida 2–3 veces por ojo. La clasificación combinó la presencia del reflejo de parpadeo y el reporte verbal del paciente en cuatro categorías ordinales: *normal* (percepción inmediata, reflejo conservado), *leve* (respuesta discretamente disminuida o retrasada), *moderada* (respuesta marcadamente disminuida con retraso evidente) y *severa* (ausencia de reflejo y percepción). Ante la discordancia interocular observada (κ = 0,536; acuerdo bruto 69,9%), la variable principal fue la severidad del ojo con mayor compromiso. Las variables metabólicas y comórbidas se obtuvieron del expediente clínico.
+
+### Análisis estadístico
+
+Los datos fueron analizados en R v4.5.2. La normalidad fue evaluada con Shapiro-Wilk. Se emplearon Mann-Whitney U, Kruskal-Wallis y correlación de Spearman. El modelo de regresión logística ordinal fue ajustado con `polr()` del paquete `MASS`. El supuesto de *odds* proporcionales fue evaluado con la prueba de Brant. Nivel de significación: p < 0,05.
+
+### Consideraciones éticas
+
+El estudio cumple la Declaración de Helsinki. Se obtuvo consentimiento informado de todos los participantes. Protocolo tramitado ante el CEI de UNIBE. [N.° de aprobación CEI: _______].
+
+## Resultados
+
+### Características generales
+
+Se incluyeron 113 pacientes con DM2, edad media 58,5 ± 11,2 años, predominio femenino (64%). El tiempo de diagnóstico fue de 11,6 ± 7,9 años. Los niveles medios de HbA1c alcanzaron 9,0 ± 2,5% y la glucemia reciente fue de 190,3 ± 87,7 mg/dL. Las comorbilidades más frecuentes fueron hipertensión arterial (61%), NDP (35%) y nefropatía diabética (29%). Las características completas se muestran en la Tabla 1; la distribución de glucemia y HbA1c en las Figuras 1 y 2.
+
+```{r}
+#| label: tbl-1
+#| tbl-cap: "Tabla 1. Características generales de la muestra (N = 113)"
+
+df %>%
+  dplyr::select(edad, sexo, tiempo_de_evolucion_de_diabetes,
+                hb_a1c_num, glucemia_num, hipertension_arterial,
+                dislipidemia, neuropatia_periferica_diabetica,
+                nefropatia_diabetica, severidad_sensibilidad) %>%
+  tbl_summary(
+    statistic = list(all_continuous()  ~ "{mean} \u00b1 {sd}",
+                     all_categorical() ~ "{n} ({p}%)"),
+    digits  = all_continuous() ~ 1,
+    missing = "no",
+    label   = list(
+      edad                            ~ "Edad (a\u00f1os)",
+      sexo                            ~ "Sexo",
+      tiempo_de_evolucion_de_diabetes ~ "Tiempo evoluci\u00f3n DM2 (a\u00f1os)",
+      hb_a1c_num                      ~ "HbA1c (%)",
+      glucemia_num                    ~ "Glucemia reciente (mg/dL)",
+      hipertension_arterial           ~ "Hipertensi\u00f3n arterial",
+      dislipidemia                    ~ "Dislipidemia",
+      neuropatia_periferica_diabetica ~ "Neuropat\u00eda perif\u00e9rica diab\u00e9tica",
+      nefropatia_diabetica            ~ "Nefropat\u00eda diab\u00e9tica",
+      severidad_sensibilidad          ~ "Severidad sensibilidad corneal"
+    )
+  ) %>%
+  bold_labels() %>%
+  as_flex_table() %>%
+  borde_ago() %>%
+  set_table_properties(width=1, layout="autofit") %>%
+  fontsize(size=8, part="all")
+```
+
+```{r}
+#| label: fig-1-2
+#| fig-cap: "Figura 1 y 2. Distribución de glucemia reciente (izquierda) y HbA1c (derecha) en pacientes con DM2 (n = 113). Línea discontinua: media muestral. Elaboración propia."
+#| fig-width: 6.7
+#| fig-height: 2.6
+#| fig-env: "figure*"
+
+g1 + g2 + plot_layout(ncol=2)
+```
+
+La prevalencia de alteración corneal fue del 60,2% (IC 95%: 50,5%–69,3%), significativamente superior al umbral del 30% (prueba binomial exacta, p < 0,001). Distribución: normal 39,8%, leve 35,4%, moderada 15,9%, severa 8,8%.
+
+### Análisis inferencial por severidad
+
+Las variables con diferencias significativas entre grupos fueron el tiempo de evolución de la DM2 (Kruskal-Wallis p < 0,001) y la presencia de NDP (Fisher p = 0,002). No se observaron diferencias para edad, HbA1c ni glucemia (p > 0,05). Los resultados se presentan en la Tabla 2 y las Figuras 3 y 4.
+
+```{r}
+#| label: tbl-2
+#| tbl-cap: "Tabla 2. Variables clínicas según severidad de sensibilidad corneal"
+
+df %>%
+  dplyr::select(edad, hb_a1c_num, glucemia_num,
+                tiempo_de_evolucion_de_diabetes,
+                neuropatia_periferica_diabetica,
+                severidad_sensibilidad) %>%
+  tbl_summary(
+    by       = severidad_sensibilidad,
+    statistic = list(all_continuous()  ~ "{mean} \u00b1 {sd}",
+                     all_categorical() ~ "{n} ({p}%)"),
+    digits  = all_continuous() ~ 1,
+    missing = "no",
+    label   = list(
+      edad                            ~ "Edad (a\u00f1os)",
+      hb_a1c_num                      ~ "HbA1c (%)",
+      glucemia_num                    ~ "Glucemia (mg/dL)",
+      tiempo_de_evolucion_de_diabetes ~ "Tiempo evoluci\u00f3n DM2 (a\u00f1os)",
+      neuropatia_periferica_diabetica ~ "Neuropat\u00eda perif\u00e9rica diab\u00e9tica"
+    )
+  ) %>%
+  add_p(test=list(all_continuous()  ~ "kruskal.test",
+                  all_categorical() ~ "fisher.test")) %>%
+  bold_labels() %>%
+  modify_footnote(update=everything() ~
+    "Media \u00b1 DE o n (%); Kruskal-Wallis para continuas; Fisher exacto para categ\u00f3ricas") %>%
+  as_flex_table() %>%
+  borde_ago() %>%
+  set_table_properties(width=1, layout="autofit") %>%
+  fontsize(size=7.5, part="all")
+```
+
+```{r}
+#| label: fig-3-4
+#| fig-cap: "Figura 3 y 4. Tiempo de evolución DM2 (izq., Kruskal-Wallis p < 0,001) y HbA1c (der.) según severidad de sensibilidad corneal (n = 113). Elaboración propia."
+#| fig-width: 6.7
+#| fig-height: 2.8
+#| fig-env: "figure*"
+
+g3 + g4 + plot_layout(ncol=2)
+```
+
+### Correlación entre variables metabólicas y severidad
+
+El tiempo de evolución mostró correlación positiva moderada y significativa con la severidad (ρ = 0,381; p < 0,001). Ni la HbA1c (ρ = 0,085; p = 0,373) ni la glucemia (ρ = 0,053; p = 0,577) mostraron correlación significativa. Los resultados se muestran en la Tabla 3 y la Figura 5.
+
+```{r}
+#| label: tbl-3
+#| tbl-cap: "Tabla 3. Correlación de Spearman entre variables continuas y severidad de sensibilidad corneal"
+
+tibble::tribble(
+  ~Variable,                              ~rho,  ~p,
+  "Tiempo de evoluci\u00f3n DM2 (a\u00f1os)", 0.381, "< 0,001",
+  "HbA1c (%)",                            0.085, "0,373",
+  "Glucemia reciente (mg/dL)",            0.053, "0,577"
+) |>
+  rename("\u03c1 de Spearman"=rho) |>
+  flextable() |>
+  borde_ago() |>
+  set_table_properties(width=1, layout="autofit") |>
+  fontsize(size=9, part="all") |>
+  bold(bold=TRUE, part="header")
+```
+
+```{r}
+#| label: fig-5
+#| fig-cap: "Figura 5. Correlación entre tiempo de evolución de DM2 y severidad de sensibilidad corneal (n = 113). ρ de Spearman = 0,381; p < 0,001. Elaboración propia."
+#| fig-width: 3.35
+#| fig-height: 2.8
+
+g5
+```
+
+### Comparación entre sensibilidad corneal normal y alterada
+
+Los pacientes con compromiso corneal presentaron mayor tiempo de evolución (mediana 13 vs. 8 años; Mann-Whitney p = 0,048). La NDP se asoció significativamente (Fisher p = 0,002; OR = 3,83; IC 95%: 1,47–10,97). Las Figuras 6 y 7 ilustran estas asociaciones.
+
+```{r}
+#| label: fig-6-7
+#| fig-cap: "Figura 6 y 7. Tiempo de evolución DM2 según alteración corneal (izq., Mann-Whitney p = 0,048) y neuropatía periférica diabética vs. sensibilidad corneal alterada (der., Fisher p = 0,002). Elaboración propia."
+#| fig-width: 6.7
+#| fig-height: 2.8
+#| fig-env: "figure*"
+
+g6 + g7 + plot_layout(ncol=2)
+```
+
+### Modelo de regresión logística ordinal
+
+Tres variables emergieron como predictores independientes: NDP (OR = 3,02; IC 95%: 1,32–6,90), hipertensión arterial (OR = 2,47; IC 95%: 1,13–5,40) y tiempo de evolución (OR = 1,10; IC 95%: 1,04–1,16). La HbA1c mostró tendencia sin alcanzar significación (OR = 1,21; p = 0,119). La prueba de Brant fue satisfactoria en la mayoría de variables (AIC = 266,7). Los resultados se muestran en la Tabla 4 y la Figura 8.
+
+```{r}
+#| label: tbl-4
+#| tbl-cap: "Tabla 4. Modelo de regresión logística ordinal: odds ratio ajustados e IC 95% (n = 113)"
+
+tibble::tribble(
+  ~Variable,                              ~OR,   ~IC,              ~p,
+  "Tiempo evoluci\u00f3n DM2 (a\u00f1os)", 1.097, "1,041 \u2013 1,155", "< 0,05*",
+  "Neuropat\u00eda perif\u00e9rica diab\u00e9tica", 3.022,"1,324 \u2013 6,898","< 0,05*",
+  "Hipertensi\u00f3n arterial",            2.472, "1,132 \u2013 5,400", "< 0,05*",
+  "HbA1c (%)",                            1.211, "0,955 \u2013 1,535", "0,119",
+  "Glucemia reciente (mg/dL)",            0.996, "0,989 \u2013 1,003", "0,288",
+  "Sexo masculino",                       1.497, "0,691 \u2013 3,240", "0,310",
+  "Edad (a\u00f1os)",                      0.983, "0,947 \u2013 1,020", "0,353"
+) |>
+  rename("OR ajustado"=OR, "IC 95%"=IC) |>
+  flextable() |>
+  borde_ago() |>
+  add_footer_lines(
+    "*IC 95% no incluye 1,0. Variable dependiente: severidad corneal (Normal < Leve < Moderada < Severa). OR ajustados mediante polr(). AIC = 266,7."
+  ) |>
+  fontsize(size=7.5, part="footer") |>
+  italic(italic=TRUE, part="footer") |>
+  set_table_properties(width=1, layout="autofit") |>
+  fontsize(size=8.5, part="all") |>
+  bold(bold=TRUE, part="header")
+```
+
+```{r}
+#| label: fig-8
+#| fig-cap: "Figura 8. Modelo de regresión logística ordinal: OR e IC 95% (n = 113). Línea punteada: OR = 1 (referencia). Variables en naranja son estadísticamente significativas. OR ajustados. Elaboración propia."
+#| fig-width: 3.35
+#| fig-height: 3.0
+
+g8
+```
+
+## Discusión y conclusiones
+
+Este estudio constituye, hasta donde es de nuestro conocimiento, la primera investigación que evalúa sistemáticamente la sensibilidad corneal en pacientes con DM2 en la República Dominicana mediante un método clínico accesible.
+
+La prevalencia de alteración corneal observada (60,2%) es consistente con el rango reportado en la literatura. So *et al.* documentaron alteraciones en el 47–64% de los pacientes diabéticos [@So2022], y Lv *et al.*, en un metaanálisis, confirmaron la asociación entre DM2 y reducción de la sensibilidad corneal [@Lv2014]. En el contexto latinoamericano, la cifra adquiere relevancia dado el control metabólico predominantemente deficiente de los pacientes incluidos (HbA1c media 9,0%).
+
+El tiempo de evolución de la DM2 emergió como el predictor más consistente en todos los análisis. Este hallazgo es coherente con el daño axonal acumulativo: la exposición prolongada a la hiperglucemia activa las vías del aldosa reductasa, la proteína quinasa C y la formación de productos de glicación avanzada, con daño mitocondrial progresivo en las células nerviosas corneales [@Albers2014; @Zhou2022]. Cid-Bertomeu *et al.* reportaron recientemente que la duración de la diabetes fue el factor más fuertemente asociado a la pérdida de sensibilidad corneal en su cohorte [@CidBertomeu2026].
+
+La NDP fue el predictor de mayor magnitud en el modelo multivariado (OR = 3,02), lo cual es esperable dado que ambas condiciones comparten el sustrato fisiopatológico de la neuropatía de fibras pequeñas. Kiyat *et al.* observaron reducciones significativas de sensibilidad corneal en pacientes con NDP [@Kiyat2022]. La hipertensión arterial emergió como predictor independiente adicional (OR = 2,47), coherente con el papel del daño microvascular acumulado por la coexistencia de DM2 e hipertensión [@Kovacova2022].
+
+La ausencia de asociación significativa entre HbA1c y severidad corneal, aunque contraintuitiva, tiene base en la fisiopatología: la HbA1c refleja la glucemia promedio de los últimos 2–3 meses, mientras que el daño neuropático corneal representa la carga histórica acumulada de años de hiperglucemia [@Dua2025; @CidBertomeu2026].
+
+El método de estimulación mecánica con algodón resultó aplicable en el contexto del INDEN. Galor y Lighthizer validaron un protocolo simplificado para entornos con recursos limitados, respaldando su viabilidad como herramienta de tamización clínica [@Galor2024; @Crabtree2024].
+
+Las principales limitaciones incluyen el diseño transversal (no permite inferir causalidad), la ausencia de grupo control sin DM2, el tamaño muestral limitado para el análisis multivariado, la subjetividad del método del algodón mitigada mediante estandarización y evaluador único, y el diagnóstico de NDP basado en expediente sin evaluación neurológica independiente.
+
+Se concluye que el 60,2% de los pacientes con DM2 evaluados presentó algún grado de alteración de la sensibilidad corneal. El tiempo de evolución de la DM2, la neuropatía periférica diabética y la hipertensión arterial fueron predictores independientes de mayor severidad. Estos resultados respaldan la incorporación de la evaluación de la sensibilidad corneal en el seguimiento oftalmológico rutinario del paciente diabético en entornos con recursos limitados.
+
+## Bibliografía
+
+::: {#refs}
+:::

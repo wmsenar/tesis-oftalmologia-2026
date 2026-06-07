@@ -28,7 +28,7 @@ library(ggplot2)
 library(ggtext)
 library(scales)
 library(dplyr)
-
+library(pwr)
 
 # =====================================================
 # 2. CARPETAS DE SALIDA
@@ -276,8 +276,9 @@ tryCatch({
 sink("resultados/correlaciones_spearman.txt")
 tryCatch({
   cat("Spearman — tiempo evolución vs severidad:\n")
-  print(cor.test(df$tiempo_de_evolucion_de_diabetes,
-                 as.numeric(df$severidad_sensibilidad), method = "spearman"))
+  cor_tiempo <- cor.test(df$tiempo_de_evolucion_de_diabetes,
+                         as.numeric(df$severidad_sensibilidad), method = "spearman")
+  print(cor_tiempo)
   cat("\nSpearman — HbA1c vs severidad:\n")
   print(cor.test(df$hb_a1c_num,
                  as.numeric(df$severidad_sensibilidad), method = "spearman"))
@@ -285,6 +286,39 @@ tryCatch({
   print(cor.test(df$glucemia_num,
                  as.numeric(df$severidad_sensibilidad), method = "spearman"))
 }, finally = sink())
+
+# =====================================================
+# 11b. ANÁLISIS DE SENSIBILIDAD — EFECTO MÍNIMO DETECTABLE (MDE)
+#      Reemplaza el análisis de potencia post-hoc (circular).
+# =====================================================
+
+rho_obs <- as.numeric(cor_tiempo$estimate)        # del bloque 11
+n_mde   <- sum(complete.cases(                     # n real de pares completos
+  df$tiempo_de_evolucion_de_diabetes,
+  as.numeric(df$severidad_sensibilidad)))
+alpha   <- 0.05
+
+# MDE para correlación: rho = tanh( (z_alpha/2 + z_pot) / sqrt(n-3) )
+# Ajuste Spearman (Bonett & Wright, 2000): SE^2 = (1 + rho^2/2)/(n-3)
+mde_spearman <- function(power, n, alpha, iter = 50) {
+  za <- qnorm(1 - alpha / 2); zp <- qnorm(power)
+  r <- 0.30
+  for (i in seq_len(iter)) r <- tanh((za + zp) * sqrt((1 + r^2 / 2) / (n - 3)))
+  r
+}
+
+mde_80 <- mde_spearman(0.80, n_mde, alpha)
+mde_90 <- mde_spearman(0.90, n_mde, alpha)
+
+sink("resultados/analisis_sensibilidad_mde.txt")
+cat("ANÁLISIS DE SENSIBILIDAD (EFECTO MÍNIMO DETECTABLE)\n")
+cat(sprintf("n = %d | alfa = %.2f (bilateral) | rho observado = %.3f\n\n",
+            n_mde, alpha, rho_obs))
+cat(sprintf("MDE potencia 80%%: rho = %.3f\n", mde_80))
+cat(sprintf("MDE potencia 90%%: rho = %.3f\n", mde_90))
+cat(sprintf("\nEl efecto observado (%.3f) %s el MDE en ambos niveles de potencia.\n",
+            rho_obs, ifelse(rho_obs > mde_90, "supera", "NO supera")))
+sink()
 
 
 # =====================================================
@@ -837,3 +871,146 @@ for (nombre in names(graficos)) {
 }
 
 message("✓ 8 gráficos exportados en /figuras/figuras 2/")
+
+
+# =====================================================
+# QQ PLOTS — Verificación visual de normalidad
+# =====================================================
+
+library(ggplot2)
+library(patchwork)
+
+# Función para generar QQ plot individual
+qq_plot <- function(data, var, label) {
+  p_shapiro <- shapiro.test(data[[var]])$p.value
+  
+  ggplot(data, aes(sample = .data[[var]])) +
+    stat_qq() +
+    stat_qq_line() +
+    labs(
+      title = label,
+      subtitle = paste0("Shapiro-Wilk: p = ", round(p_shapiro, 3)),
+      x = "Cuantiles teóricos",
+      y = "Cuantiles observados"
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(face = "bold", hjust = 0.5),
+      plot.subtitle = element_text(hjust = 0.5)
+    )
+}
+qq1 <- qq_plot(df, "edad", "Edad (años)")
+qq2 <- qq_plot(df, "hb_a1c_num", "HbA1c (%)")
+qq3 <- qq_plot(df, "glucemia_num", "Glucemia (mg/dL)")
+qq4 <- qq_plot(df, "tiempo_de_evolucion_de_diabetes", "Tiempo evolución DM2 (años)")
+
+qq1
+qq2
+qq3
+qq4
+
+# Combinar en un solo gráfico con patchwork
+g_qq <- (qq1 | qq2) / (qq3 | qq4) +
+  plot_annotation(
+    title    = "Gráficos Q-Q — Evaluación visual de normalidad (n = 113)",
+    subtitle = "Línea discontinua naranja: distribución normal teórica  |  Puntos azules: datos observados",
+    caption  = "Prueba de Shapiro-Wilk: p < 0.05 indica desviación significativa de la normalidad",
+    theme    = theme(
+      plot.title    = element_text(face = "bold", size = 13,
+                                   color = "#1A3A5C", hjust = 0.5),
+      plot.subtitle = element_text(size = 9.5, color = "#555555", hjust = 0.5),
+      plot.caption  = element_text(size = 9,   color = "#888888", hjust = 0)
+    )
+  )
+
+
+
+# =====================================================
+# 15d. MODELO DE ODDS PROPORCIONALES PARCIALES (VGAM)
+#      
+# =====================================================
+
+install.packages("VGAM")   # si no lo tienes instalado
+library(VGAM)
+
+# ── (1) PUENTE: modelo de odds proporcionales COMPLETO en VGAM ──
+#     Debe reproducir tu polr(). Sirve para confirmar que la
+#     dirección de los OR es la misma antes de relajar nada.
+fit_po <- vglm(
+  severidad_sensibilidad ~
+    tiempo_de_evolucion_de_diabetes +
+    neuropatia_periferica_diabetica +
+    hipertension_arterial +
+    hb_a1c_num + glucemia_num + sexo + edad,
+  family = cumulative(parallel = TRUE, reverse = TRUE),
+  data   = df
+)
+cat("\n== OR modelo PO completo (deben coincidir con polr) ==\n")
+print(round(exp(coef(fit_po)), 3))   # ignora los 3 interceptos
+
+# ── (2) MODELO DE ODDS PROPORCIONALES PARCIALES ──
+#     SOLO 'tiempo' obtiene un coeficiente por cada umbral.
+fit_ppo <- vglm(
+  severidad_sensibilidad ~
+    tiempo_de_evolucion_de_diabetes +
+    neuropatia_periferica_diabetica +
+    hipertension_arterial +
+    hb_a1c_num + glucemia_num + sexo + edad,
+  family = cumulative(parallel = FALSE ~ tiempo_de_evolucion_de_diabetes,
+                      reverse = TRUE),
+  data   = df
+)
+cat("\n== Resumen modelo odds parciales ==\n")
+print(summary(fit_ppo))
+
+# ── (3) OR del TIEMPO por umbral (lo interesante) ──
+co  <- coef(summary(fit_ppo))
+idx <- grep("tiempo_de_evolucion", rownames(co))   # 3 filas: una por umbral
+tabla_tiempo <- data.frame(
+  Umbral  = c("Normal vs ≥Leve",
+              "≤Leve vs ≥Moderada",
+              "≤Moderada vs Severa"),
+  OR      = round(exp(co[idx, "Estimate"]), 3),
+  IC_low  = round(exp(co[idx, "Estimate"] - 1.96 * co[idx, "Std. Error"]), 3),
+  IC_high = round(exp(co[idx, "Estimate"] + 1.96 * co[idx, "Std. Error"]), 3),
+  p       = round(co[idx, "Pr(>|z|)"], 4)
+)
+cat("\n== OR del tiempo de evolución, umbral por umbral ==\n")
+print(tabla_tiempo, row.names = FALSE)
+
+# ── (4) ¿Vale la pena relajar el supuesto? ──
+#     Test de razón de verosimilitud: PO (restringido) vs PPO.
+#     H0: el modelo proporcional completo es suficiente.
+cat("\n== Test de razón de verosimilitud (PO vs PPO) ==\n")
+print(lrtest(fit_ppo, fit_po))
+cat("\nAIC PO completo :", round(AIC(fit_po), 1),
+    "\nAIC PO parcial  :", round(AIC(fit_ppo), 1), "\n")
+
+# Exportar
+write.csv(tabla_tiempo, "resultados/or_tiempo_odds_parciales.csv", row.names = FALSE)
+
+# install.packages("ordinal")
+library(ordinal)
+
+# Modelo PO completo (equivalente a tu polr)
+clm_po <- clm(severidad_sensibilidad ~
+                tiempo_de_evolucion_de_diabetes + neuropatia_periferica_diabetica +
+                hipertension_arterial + hb_a1c_num + glucemia_num + sexo + edad,
+              data = df)
+
+# Modelo PARCIAL: 'tiempo' con efecto por umbral (va en nominal=)
+clm_ppo <- clm(severidad_sensibilidad ~
+                 neuropatia_periferica_diabetica + hipertension_arterial +
+                 hb_a1c_num + glucemia_num + sexo + edad,
+               nominal = ~ tiempo_de_evolucion_de_diabetes,
+               data = df)
+
+cat("\n== Convergencia ==\n")
+cat("clm_po  logLik:", logLik(clm_po),  "\n")
+cat("clm_ppo logLik:", logLik(clm_ppo), "\n")   # si NO es NaN, convergió
+
+cat("\n== AIC ==\n")
+cat("PO completo:", round(AIC(clm_po), 1), "| PO parcial:", round(AIC(clm_ppo), 1), "\n")
+
+cat("\n== Test PO vs PPO ==\n")
+print(anova(clm_po, clm_ppo))   # H0: el modelo PO simple es suficiente
