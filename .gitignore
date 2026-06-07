@@ -25,3 +25,6 @@ tesis_sensibilidad_corneal_113.RData
 # Cache y archivos temporales de Quarto
 *_cache/
 *_files/
+
+sena_sensibilidad_corneal_dm2.qmd
+sena_sensibilidad_corneal_dm2.docx
