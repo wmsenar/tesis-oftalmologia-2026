@@ -1,6 +1,0 @@
-=== COMPARACIÓN DE MODELOS POR AIC ===
-Modelo 5v (sin sexo, sin HTA): 268.9 
-Modelo 7v — MODELO FINAL:      266.7 
-Modelo reducido (tiempo+NPD):  264.9 
-
-Delta AIC (reducido vs 7v): -1.8 

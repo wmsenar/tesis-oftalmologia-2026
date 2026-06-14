@@ -1,130 +1,104 @@
-# Sensibilidad Corneal en Pacientes con Diabetes Mellitus Tipo 2
+# Sensibilidad corneal en diabetes mellitus tipo 2 — Análisis reproducible
 
-**Tesis para optar por el título de Doctor en Medicina**  
-Universidad Iberoamericana (UNIBE) — Escuela de Medicina  
+*Reproducible R analysis: corneal sensitivity and its clinical predictors in type 2 diabetes.*
 
-**Autor:** Dr. Wainer Manuel Sena Rivas  
-**Institución de estudio:** Instituto Nacional de Diabetes, Endocrinología y Nutrición (INDEN), Santo Domingo, República Dominicana  
-**Período de recolección:** Marzo–Mayo 2026  
-
----
-
-## Descripción
-
-Estudio observacional, descriptivo-analítico y transversal que evalúa la **prevalencia y factores clínicos asociados a la alteración de la sensibilidad corneal** en 113 pacientes con DM2 atendidos en el INDEN mediante estimulación mecánica con algodón estandarizado.
-
-Este repositorio contiene el código R completo para reproducir todos los análisis estadísticos, tablas y figuras del trabajo.
+Código y datos que respaldan el artículo derivado del estudio de sensibilidad corneal en
+pacientes con diabetes mellitus tipo 2 (DM2). Todos los resultados estadísticos del
+manuscrito se reproducen ejecutando un único script de R.
 
 ---
 
-## Hallazgos principales
+## Cita
 
-| Hallazgo | Resultado |
+Pendiente de publicación. Citar como:
+
+> Sena Rivas WM. *[Título del artículo].* [Revista]. 2026. DOI: [pendiente].
+
+*(Completar con los datos definitivos al momento de la aceptación.)*
+
+---
+
+## Archivos
+
+Estructura plana (todos los archivos en la raíz del repositorio):
+
+| Archivo | Descripción |
 |---|---|
-| Prevalencia de alteración corneal | 60% (leve 35%, moderada 16%, severa 8.8%) |
-| Predictor más consistente | Tiempo de evolución DM2 (OR = 1.10; IC 95%: 1.04–1.16) |
-| Neuropatía periférica diabética | OR = 3.02 (IC 95%: 1.32–6.90) |
-| Hipertensión arterial | OR = 2.47 (IC 95%: 1.13–5.40) |
-| Correlación Spearman tiempo/severidad | ρ = 0.381; p < 0.001 |
-| Concordancia interocular (κ) | 0.536 (moderada); acuerdo observado 69.9% |
-| AIC modelo final (7 variables) | 266.7 |
+| `analisis_publicacion_sensibilidad_corneal.R` | **Script principal.** Reproduce todos los cálculos del artículo, de principio a fin. |
+| `base_sensibilidad_corneal.csv` | Base de datos del estudio (sin identificadores de pacientes). |
+| `README.md` | Este archivo. |
 
 ---
 
-## Estructura del repositorio
+## Requisitos
 
-```
-├── tesissensibilidad_corneal_FINAL.R   # Script principal — análisis completo
-├── base_sensibilidad_corneal.csv       # Base de datos original (no incluida)
-├── resultados/
-│   ├── base_sensibilidad_corneal_113_limpia.csv
-│   ├── base_sensibilidad_corneal_113_limpia.rds
-│   ├── shapiro_tests.txt
-│   ├── correlaciones_spearman.txt
-│   ├── analisis_binario_sensibilidad.txt
-│   ├── or_modelo_logistico_binario.csv
-│   ├── coeficientes_modelo_ordinal_7v.csv
-│   ├── or_modelo_ordinal_7v.csv
-│   ├── comparacion_aic_modelos.txt
-│   ├── test_brant_proporcionalidad.txt
-│   └── concordancia_interocular.txt
-├── tablas/
-│   ├── tabla1_descriptiva_general.docx
-│   └── tabla2_severidad_sensibilidad.docx
-└── figuras/figuras 2/
-    ├── 01_histograma_glucemia.png
-    ├── 02_histograma_hba1c.png
-    ├── 03_boxplot_tiempo_severidad.png
-    ├── 04_boxplot_hba1c_severidad.png
-    ├── 05_scatter_tiempo_severidad.png
-    ├── 06_boxplot_tiempo_binario.png
-    ├── 07_barras_neuropatia_sensibilidad.png
-    └── 08_forest_plot_ordinal_7v.png
-```
+- **R** ≥ 4.5.2
+- Paquetes:
 
-> **Nota:** La base de datos original no está incluida en el repositorio por razones de confidencialidad y protección de datos de los participantes.
+```r
+install.packages(c("MASS", "tidyverse", "janitor", "lubridate",
+                   "binom", "psych", "pwr", "brant"))
+```
 
 ---
 
-## Metodología estadística
+## Cómo reproducir
 
-| Análisis | Prueba | Justificación |
+1. Coloca `base_sensibilidad_corneal.csv` en el directorio de trabajo.
+2. Abre `analisis_publicacion_sensibilidad_corneal.R` y ejecútalo **de principio a fin**
+   (el script está encadenado: cada bloque depende de los anteriores).
+3. La salida en consola incluye, en el mismo orden del artículo, cada cifra reportada.
+
+---
+
+## Qué reproduce el script
+
+| Bloque | Resultado del artículo | Valor esperado |
 |---|---|---|
-| Normalidad | Shapiro-Wilk | Variables cuantitativas no cumplen normalidad |
-| Comparación 2 grupos | Mann-Whitney U | Variable no normal, grupos independientes |
-| Comparación 4 grupos | Kruskal-Wallis | Equivalente no paramétrico del ANOVA |
-| Correlación | Spearman (ρ) | Variables ordinales / continuas no normales |
-| Asociación 2×2 | Fisher exacto | Frecuencias esperadas < 5 en subgrupos |
-| Modelo multivariado | Regresión logística ordinal `polr()` | Variable dependiente ordinal de 4 categorías |
-
-**Supuestos verificados:**
-- Proporcionalidad de odds: test de Brant manual (tiempo de evolución p = 0.0295; demás variables cumplen)
-- Concordancia interocular: κ = 0.536, acuerdo observado 69.9%
-- Variable dependiente: peor ojo (mínimo entre OD y OS) — una observación por paciente
+| 2 | Prevalencia de alteración corneal (IC 95% Wilson) | 60.2 % [51.0–68.7] |
+| 3 | Correlaciones de Spearman con la severidad | tiempo ρ = 0.381; HbA1c y glucemia no significativas |
+| 4 | Mínimo efecto detectable (MDE; Spearman, Bonett-Wright) | ρ ≥ 0.265 (80 %); ρ ≥ 0.306 (90 %) |
+| 5 | Concordancia interocular (κ de Cohen) | κ = 0.536; acuerdo 69.9 %; discordancia 30.1 % |
+| 6 | Análisis bivariado / Fisher (NPD) | OR ≈ 3.83 |
+| 7 | **Modelo ordinal principal (parsimonioso, 3 variables)** | tiempo 1.084; NPD 2.892; HTA 2.064 (marginal); AIC 263.2 |
+| 8 | Modelo de sensibilidad (7 variables) + LRT | AIC 266.7; LRT p = 0.336 |
+| 9 | Supuesto de odds proporcionales (Brant) sobre el modelo principal | violación para el tiempo de evolución |
 
 ---
 
-## Reproducibilidad
+## Notas metodológicas
 
-```r
-# Versión de R utilizada
-R version 4.5.2
-
-# Paquetes principales
-MASS        # polr() — regresión logística ordinal
-tidyverse   # manipulación de datos
-gtsummary   # tablas descriptivas
-ggplot2     # visualizaciones
-ggtext      # títulos con formato en gráficos
-broom       # tidying de modelos
-```
-
-Para reproducir el análisis completo:
-
-```r
-# 1. Clonar el repositorio
-# 2. Colocar la base de datos en la raíz del proyecto como:
-#    base_sensibilidad_corneal.csv
-# 3. Ejecutar el script principal
-source("tesissensibilidad_corneal_FINAL.R")
-```
+- **Variable de desenlace:** severidad de sensibilidad corneal del **peor ojo** (mínimo
+  entre ambos ojos), justificado por la concordancia interocular solo moderada (κ = 0.536).
+- **Modelo principal:** regresión logística ordinal parsimoniosa de 3 predictores
+  (tiempo de evolución, neuropatía periférica diabética, hipertensión arterial). El modelo
+  de 7 predictores se reporta únicamente como análisis de sensibilidad; el test de razón de
+  verosimilitud (p = 0.336) confirma que las variables adicionales no mejoran el ajuste.
+- **Supuesto de odds proporcionales:** la prueba de Brant indica incumplimiento para el
+  tiempo de evolución; su OR debe interpretarse como un efecto promedio a través de los
+  umbrales de severidad. El modelo de odds proporcionales parciales no produjo estimaciones
+  numéricamente estables con el tamaño muestral disponible y, por tanto, no se reporta
+  (queda como apéndice comentado en el script).
+- **Potencia:** no se calculó tamaño muestral a priori; se reporta el mínimo efecto
+  detectable (MDE) en lugar de potencia post-hoc.
 
 ---
 
-## Consideraciones éticas
+## Disponibilidad de datos
 
-El estudio fue aprobado por el Comité de Ética de Investigación (CEI) de UNIBE. Todos los participantes firmaron consentimiento informado. Los datos están anonimizados y no se incluyen en este repositorio.
-
----
-
-## Referencia
-
-> Sena Rivas, W.M. (2026). *Sensibilidad corneal en pacientes con diabetes mellitus tipo 2 atendidos en el INDEN, Santo Domingo, República Dominicana, enero–mayo 2026.* Trabajo Profesional Final, Universidad Iberoamericana (UNIBE).
+`base_sensibilidad_corneal.csv` no contiene nombres, números de expediente ni fechas que
+permitan reidentificar pacientes. El estudio fue aprobado por el comité de ética
+correspondiente.
 
 ---
 
-## Contacto
+## Licencia
 
-**Dr. Wainer Manuel Sena Rivas**  
-Residente de Oftalmología — INDEN  
-Universidad Iberoamericana (UNIBE)
+Sugerida: MIT para el código; los datos según la política de la institución y la revista.
+*(Definir antes de hacer público el repositorio.)*
+
+---
+
+## Autor
+
+Dr. Wainer Manuel Sena Rivas — 2026

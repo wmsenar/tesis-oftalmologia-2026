@@ -1,7 +1,11 @@
 # =====================================================
 # TESIS: SENSIBILIDAD CORNEAL EN PACIENTES CON DM2
-# 
-# Dr. Wainer Manuel Sena Rivas 2026
+#
+# Dr. Wainer Manuel Sena Rivas
+# Servicio de Oftalmología, INDEN — Hospital Escuela Dr. Jorge Abraham Hazoury Bahlés
+# Universidad Iberoamericana (UNIBE), Santo Domingo, República Dominicana
+# Correo: w.sena@prof.unibe.edu.do | ORCID: 0009-0006-4261-9241
+# 2026
 # =====================================================
 
 

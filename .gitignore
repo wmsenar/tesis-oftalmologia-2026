@@ -1,30 +1,33 @@
-.Rproj.user
-.Rhistory
-.RData
-.httr-oauth
-.DS_Store
-.quarto
-basedatosconsulta.csv
+# ===== Datos de pacientes — NUNCA subir =====
 base_sensibilidad_corneal.csv
-*.csv
-*.csv
-*.RData
-base_sensibilidad_corneal.csv
-tesis_sensibilidad_corneal_113.RData
-*.RData
-.RData
-.Rhistory
-.Rapp.history
-.DS_Store
-.RData
-.Rhistory
-.Rapp.history
-.DS_Store
-.positai
+resultados/base_sensibilidad_corneal_113_limpia.csv
+resultados/base_sensibilidad_corneal_113_limpia.rds
+resultados/base_sensibilidad_corneal_113_limpia.xlsx
 
-# Cache y archivos temporales de Quarto
+# ===== Salidas regenerables =====
+resultados/*.csv
+resultados/*.txt
+figuras/
+graficos/
+tablas/
 *_cache/
 *_files/
+*.png
+*.pdf
 
+# ===== Artículo (vive en Cornea-Sens-DM2026) =====
 sena_sensibilidad_corneal_dm2.qmd
 sena_sensibilidad_corneal_dm2.docx
+
+# ===== R / RStudio =====
+.Rhistory
+.RData
+.Rapp.history
+.Rproj.user/
+*.Rproj
+.positai
+.httr-oauth
+.quarto
+
+# ===== macOS =====
+.DS_Store
