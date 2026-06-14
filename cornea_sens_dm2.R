@@ -2,7 +2,7 @@
 # SENSIBILIDAD CORNEAL EN PACIENTES CON DM2 — SCRIPT DE PUBLICACIÓN
 # Reproduce TODOS los cálculos del manuscrito (versión final).
 #
-# Dr. Wainer Manuel Sena Rivas | Tania A. De la Rosa-Galva
+# Dr. Wainer Manuel Sena Rivas | Dra. Cynthia Cunillera Batlle | Dra. Tania A. De la Rosa-Galva
 # Servicio de Oftalmología, INDEN — Hospital Escuela Dr. Jorge Abraham Hazoury Bahlés
 # Universidad Iberoamericana (UNIBE), Santo Domingo, República Dominicana
 # Correo: w.sena@prof.unibe.edu.do | ORCID: 0009-0006-4261-9241
