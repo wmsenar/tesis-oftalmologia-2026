@@ -6,7 +6,7 @@
 # Servicio de Oftalmología, INDEN — Hospital Escuela Dr. Jorge Abraham Hazoury Bahlés
 # Universidad Iberoamericana (UNIBE), Santo Domingo, República Dominicana
 # Correo: w.sena@prof.unibe.edu.do | ORCID: 0009-0006-4261-9241
-# Repo: wmsenar/tesis-oftalmologia-2026 | 2026
+# Repo: https://github.com/wmsenar/Cornea-Sens-DM2026 | 2026
 #
 # NOTA: este script está armonizado con el artículo final.
 #   - Modelo PRINCIPAL: 3 predictores (tiempo, NPD, HTA); IC de perfil; AIC 263.2
